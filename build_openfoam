@@ -20,7 +20,7 @@ cd OpenFOAM-$OPENFOAM_VN/
 
 # Tweak code
 cat > ./etc/prefs.sh << EOF
-export WM_COMPILER_TYPE=ThirdParty
+export WM_COMPILER_TYPE=system
 export WM_COMPILER=Gcc
 export WM_MPLIB=CRAY-MPICH
 EOF
