@@ -1,0 +1,70 @@
+#!/bin/bash
+#PBS -q arm
+#PBS -l select=1:ncpus=16
+#PBS -l walltime=02:00:00
+
+export OPENFOAM_VN=v2306
+export SOFTWARE_HOME=$HOME/software/xci
+export OPENFOAM_HOME=$SOFTWARE_HOME/packages/gcc-9.3.0/openfoam/$OPENFOAM_VN
+export OPENFOAM_MOD_HOME=$SOFTWARE_HOME/modules/gcc-9.3.0/openfoam
+
+module unload PrgEnv-cray
+module load PrgEnv-gnu
+
+# Get code
+mkdir -p $OPENFOAM_HOME
+cd $OPENFOAM_HOME
+wget https://dl.openfoam.com/source/$OPENFOAM_VN/OpenFOAM-$OPENFOAM_VN.tgz
+tar -xzf OpenFOAM-$OPENFOAM_VN.tgz
+cd OpenFOAM-$OPENFOAM_VN/
+
+# Tweak code
+cat > ./etc/prefs.sh << EOF
+export WM_COMPILER_TYPE=ThirdParty
+export WM_COMPILER=Gcc
+export WM_MPLIB=CRAY-MPICH
+EOF
+
+sed -i 's/-lmpi/-lmpich/g' ./wmake/rules/General/mplibMPICH
+
+# Submit build
+source ./etc/bashrc
+foam
+foamSystemCheck
+./Allwmake -j -s -q -l
+
+# Check installation
+foamInstallationTest
+
+# Create module/activation utilities
+cat > $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/bin/foamActivate << EOF
+source $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/etc/bashrc
+EOF
+
+mkdir -p $OPENFOAM_MOD_HOME
+cat > $OPENFOAM_MOD_HOME/$OPENFOAM_VN << EOF
+#%Module
+
+proc ModulesHelp { } {
+  puts stderr "\tAdds the OpenFOAM libraries to your path, for details enter"
+  puts stderr "module whatis <module>"
+  puts stderr "with <module> replaced by the name of this module."
+}
+
+module-whatis "Adds OpenFOAM $OPENFOAM_VN to your path"
+
+setenv          OPENFOAM                $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN
+
+prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/bin
+prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/bin
+
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/cray-mp
+ich
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/dummy
+
+setenv          FOAM_INST_DIR           $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN
+setenv          OPENFOAM_TUTORIALS      $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/tutorials
+setenv          WM_PROJECT_DIR          $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN
+setenv          WM_THIRD_PARTY_DIR      $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/ThirdParty-${version}
+EOF
