@@ -16,10 +16,9 @@ The installation directory can be specified by changing the ```$SOFTWARE_HOME```
 
 To activate the OpenFOAM installation, either load the newly created OpenFOAM module and run the new ```foamActivate``` script:
 ``` shell script
-THIS DOESN'T WORK - source manually
 module use ~/software/xci/modules/gcc-9.3.0
 module load openfoam/v2306
-foamActivate
+source foamActivate
 ```
 or do it manually:
 ``` shell script
