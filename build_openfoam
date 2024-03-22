@@ -4,12 +4,13 @@
 #PBS -l walltime=04:00:00
 
 export OPENFOAM_VN=v2306
-export SOFTWARE_HOME=$HOME/software/xci
-export OPENFOAM_HOME=$SOFTWARE_HOME/packages/gcc-9.3.0/openfoam/$OPENFOAM_VN
-export OPENFOAM_MOD_HOME=$SOFTWARE_HOME/modules/gcc-9.3.0/openfoam
+export SOFTWARE_HOME=$HOME/software/macs
+export OPENFOAM_HOME=$SOFTWARE_HOME/packages/gcc-8.1.0/openfoam/$OPENFOAM_VN
+export OPENFOAM_MOD_HOME=$SOFTWARE_HOME/modules/gcc-8.1.0/openfoam
 
-module unload PrgEnv-cray
-module load PrgEnv-gnu
+module load gcc
+module load mpich/ge/gcc/64/3.3.2
+export MPICH_DIR=$MPI_DIR
 
 # Get code
 mkdir -p $OPENFOAM_HOME
