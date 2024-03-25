@@ -60,8 +60,7 @@ prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/bin
 prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/bin
 
 prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib
-prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/cray-mp
-ich
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/cray-mpich
 prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/dummy
 
 setenv          FOAM_INST_DIR           $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN
