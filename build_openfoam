@@ -10,7 +10,7 @@ export OPENFOAM_MOD_HOME=$SOFTWARE_HOME/modules/gcc-8.1.0/openfoam
 
 module load gcc
 module load mpich/ge/gcc/64/3.3.2
-export MPICH_DIR=$MPI_DIR
+export MPICH_DIR=$MPI_HOME
 
 # Get code
 mkdir -p $OPENFOAM_HOME
