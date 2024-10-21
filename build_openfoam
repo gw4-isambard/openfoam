@@ -1,15 +1,12 @@
 #!/bin/bash
-#PBS -q arm
-#PBS -l select=1:ncpus=16
-#PBS -l walltime=04:00:00
 
-export OPENFOAM_VN=v2306
-export SOFTWARE_HOME=$HOME/software/xci
-export OPENFOAM_HOME=$SOFTWARE_HOME/packages/gcc-9.3.0/openfoam/$OPENFOAM_VN
-export OPENFOAM_MOD_HOME=$SOFTWARE_HOME/modules/gcc-9.3.0/openfoam
+export OPENFOAM_VN=v2312
+export COMPILER=cray
+export SOFTWARE_HOME=$HOME/software/
+export OPENFOAM_HOME=$SOFTWARE_HOME/packages/$COMPILER/openfoam/$OPENFOAM_VN
+export OPENFOAM_MOD_HOME=$SOFTWARE_HOME/modules/$COMPILER/openfoam
 
-module unload PrgEnv-cray
-module load PrgEnv-gnu
+module load PrgEnv-$COMPILER
 
 # Get code
 mkdir -p $OPENFOAM_HOME
@@ -19,13 +16,27 @@ tar -xzf OpenFOAM-$OPENFOAM_VN.tgz
 cd OpenFOAM-$OPENFOAM_VN/
 
 # Tweak code
+if [[ $COMPILER -eq "cray" ]]; then
+  export WMC=Clang
+elif [[ $COMPILER -eq "gnu" ]]; then
+  export WMC=Gcc
+elif [[ $COMPILER -eq "nvhpc" ]]; then
+  export WMC=Nvidia
+else
+  echo ERROR: Invalid Compiler choice: $COMPILER 1>&2
+  exit 1
+fi
+
 cat > ./etc/prefs.sh << EOF
 export WM_COMPILER_TYPE=system
-export WM_COMPILER=Gcc
+export WM_COMPILER=$WMC
 export WM_MPLIB=CRAY-MPICH
 EOF
 
 sed -i 's/-lmpi/-lmpich/g' ./wmake/rules/General/mplibMPICH
+sed -i -e 's@clang$(COMPILER_VERSION)@cc@g' -e 's@Clang/link-c@Gcc/link-c@g' ./wmake/rules/General/Clang/c
+sed -i -e 's@clang++$(COMPILER_VERSION)@CC@g' -e 's@Clang/link-c++@Gcc/link-c++@g' ./wmake/rules/General/Clang/c++
+sed -i '42s/.*/    LINKEXE    += -fuse-ld=bfd -Xlinker --add-needed/' ./wmake/rules/General/Clang/link-c++
 
 # Submit build
 source ./etc/bashrc
@@ -56,12 +67,11 @@ module-whatis "Adds OpenFOAM $OPENFOAM_VN to your path"
 setenv          OPENFOAM                $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN
 
 prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/bin
-prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/bin
+prepend-path    PATH                    $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64${WMC}DPInt32Opt/bin
 
-prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib
-prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/cray-mp
-ich
-prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64GccDPInt32Opt/lib/dummy
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64${WMC}DPInt32Opt/lib
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64${WMC}DPInt32Opt/lib/cray-mpich
+prepend-path    LD_LIBRARY_PATH         $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/platforms/linuxARM64${WMC}DPInt32Opt/lib/dummy
 
 setenv          FOAM_INST_DIR           $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN
 setenv          OPENFOAM_TUTORIALS      $OPENFOAM_HOME/OpenFOAM-$OPENFOAM_VN/tutorials
