@@ -6,13 +6,13 @@ First, clone this repository to access the build script:
 ```shell script
 git clone https://github.com/gw4-isambard/openfoam
 ```
-Then submit the build script to the job queue:
+Then run the build script:
 ```shell script
 cd openfoam
-qsub build_openfoam
+./build_openfoam
 ```
 
-The installation directory can be specified by changing the ```$SOFTWARE_HOME``` variable in the ```build_openfoam``` script.
+The installation directory ad target programming environmet can be changed within the script.
 
 To activate the OpenFOAM installation, either load the newly created OpenFOAM module and run the new ```foamActivate``` script:
 ``` shell script
